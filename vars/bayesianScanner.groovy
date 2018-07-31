@@ -17,9 +17,10 @@ def call(body) {
                 sh 'mvn io.github.stackinfo:stackinfo-maven-plugin:0.2:prepare'
                 sh 'mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:resolve -DoutputFile=direct-dependencies.txt -DincludeScope=runtime -DexcludeTransitive=true'
                 sh 'mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:resolve -DoutputFile=transitive-dependencies.txt -DincludeScope=runtime -DexcludeTransitive=false'
+
                 retry(3) {
                     def project = flow.getGitHubProject()
-                    def response = bayesianAnalysis url: 'https://bayesian-link', gitUrl: "git@github.com:${project}.git"
+                    def response = bayesianAnalysis url: 'https://bayesian-link', gitUrl: "https://github.com/${project}.git"
                     if (response.success) {
                         utils.addAnnotationToBuild('fabric8.io/bayesian.analysisUrl', response.getAnalysisUrl())
                     } else {
