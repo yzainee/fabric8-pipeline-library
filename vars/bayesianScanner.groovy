@@ -14,10 +14,11 @@ def call(body) {
         echo "Checking ${serviceName} exists"
         if (flow.hasService(serviceName)) {
             try {
-                sh 'mvn io.github.stackinfo:stackinfo-maven-plugin:0.2:prepare'
-                sh 'mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:resolve -DoutputFile=direct-dependencies.txt -DincludeScope=runtime -DexcludeTransitive=true'
-                sh 'mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:resolve -DoutputFile=transitive-dependencies.txt -DincludeScope=runtime -DexcludeTransitive=false'
-
+                sh '''
+                    mvn io.github.stackinfo:stackinfo-maven-plugin:0.2:prepare &&
+                    mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:resolve -DoutputFile=direct-dependencies.txt -DincludeScope=runtime -DexcludeTransitive=true &&
+                    mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.1:resolve -DoutputFile=transitive-dependencies.txt -DincludeScope=runtime -DexcludeTransitive=false
+                   '''
                 retry(3) {
                     def project = flow.getGitHubProject()
                     def response = bayesianAnalysis url: 'https://bayesian-link', gitUrl: "https://github.com/${project}.git"
