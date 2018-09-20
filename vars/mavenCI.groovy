@@ -26,14 +26,17 @@ def call(body) {
             flow.searchAndReplaceMavenVersionProperty(v.key, v.value)
         }
 
+        def goal = config.goal ?: "install"
+        def profile = config.profile ?: "openshift"
         def skipTests = config.skipTests ?: false
+        def buildCmd = config.buildCmd ?: "mvn clean -B -e -U ${goal} -Dmaven.test.skip=${skipTests} -P ${profile}"
 
         def version = 'PR-' + getNewVersion {} + "-${env.BUILD_NUMBER}"
 
         stage('Build + Unit test') {
             // set a unique temp version so we can download artifacts from nexus and run acceptance tests
             sh "mvn -U versions:set -DnewVersion=${version}"
-            sh "mvn clean -B -e -U deploy -Dmaven.test.skip=${skipTests} -P openshift"
+            sh buildCmd
         }
 
         def s2iMode = utils.supportsOpenShiftS2I()
@@ -60,6 +63,7 @@ def call(body) {
 
         stage('Integration Testing') {
             mavenIntegrationTest {
+                cmd = config.integrationTestCmd
                 environment = 'Test'
                 failIfNoTests = false
                 itestPattern = '*IT'
